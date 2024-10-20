@@ -31,4 +31,4 @@ l0m = [20,30,30,30,30,30];
 %random force and activation of muscles (in this model we don't care if muscle pushes or pulls, it's just for check if the equations are correct)
 force = rand(1,6)*500-250;
 %activations are constant during the simulation
-activation = rand(6,1);
+activation = rand(6,1)*0;

@@ -18,7 +18,7 @@ muscle_len(6) = muscle_length('Thorax','Scapula',[8, -4, 0],[-4,4,-4],q);
 
 % Jacobian of muscle lengths (in Euler or Tait-Bryan angles this represents the moment arms)
 % 
-jac = (jacobian(muscle_len,q)');
+jac = -(jacobian(muscle_len,q)');
 
 if genEq == 1
 
