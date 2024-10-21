@@ -1,22 +1,57 @@
 import sympy as sp
 import sympy.physics.mechanics as me
+import numpy as np
+import matplotlib.pyplot as plt
+
+def plot_results(solution, vals , time, num_nodes):
+    solution_mat = solution[:2*4*num_nodes].reshape(8,num_nodes)
+    sol_glob = np.zeros([4,num_nodes])
+    for i in range(num_nodes):
+        sol_glob[:,i] = mulQuat_np(solution_mat[0:4,i],solution_mat[4:8,i])[:,0]
+        # print(mulQuat_np(solution_mat[0:4,i],solution_mat[4:8,i])[:,0])
+
+    vals_mat = vals.reshape(4,num_nodes)
+
+    fig, axs = plt.subplots(4)
+    for j in range(4):
+        axs[j].plot(time,vals_mat[j,:],marker = 'o')
+        axs[j].plot(time,sol_glob[j,:])
+        fig.set_figheight(3)
+
+    print(sol_glob-vals_mat)
+    
+    # return vals_mat
+
+def min_rotglob(sym_vec, vals,num_nodes,interval_value):
+    obj_sep = sp.zeros(len(vals),1)
+    sym_mat = sym_vec.reshape(8,num_nodes)
+    vals_mat = vals.reshape(4,num_nodes)
+
+    for i in range(num_nodes):
+        obj_sep[0+i*4:4+i*4,0] = mulQuat_sp(sym_mat[0:4,i],sym_mat[4:8,i]) - sp.Matrix(vals_mat[:,i])
+
+    obj = sum(interval_value * (obj_sep.applyfunc(lambda x: x**2)))
+    obj_np = (sp.lambdify(sym_vec, obj, cse = True))
+    obj_jacobian = sp.Matrix([obj]).jacobian(sym_vec)
+    obj_jacobian_np = sp.lambdify(sym_vec, obj_jacobian,cse=True)
+
+    return obj_np, obj_jacobian_np
 
 
-
-def min_rotglob(qa,qb):
-    rot_mat = mulQuat(qa,qb)
-    rot_mat_J = rot_mat.jacobian(qa+qb)
-    rot_mat_np = sp.lambdify([list(qa)+list(qb)],rot_mat)
-    rot_mat_J_np = sp.lambdify([qa+qb],rot_mat_J)
-
-    return rot_mat, rot_mat_J, rot_mat_np, rot_mat_J_np
-
-def mulQuat(qa,qb):
+def mulQuat_sp(qa,qb):
     res = sp.Matrix([[qa[0]*qb[0] - qa[1]*qb[1] - qa[2]*qb[2] - qa[3]*qb[3]],
                      [qa[0]*qb[1] + qa[1]*qb[0] + qa[2]*qb[3] - qa[3]*qb[2]],
                      [qa[0]*qb[2] - qa[1]*qb[3] + qa[2]*qb[0] + qa[3]*qb[1]],
                      [qa[0]*qb[3] + qa[1]*qb[2] - qa[2]*qb[1] + qa[3]*qb[0]]])
     return res
+
+def mulQuat_np(qa,qb):
+    res = np.array([[qa[0]*qb[0] - qa[1]*qb[1] - qa[2]*qb[2] - qa[3]*qb[3]],
+                     [qa[0]*qb[1] + qa[1]*qb[0] + qa[2]*qb[3] - qa[3]*qb[2]],
+                     [qa[0]*qb[2] - qa[1]*qb[3] + qa[2]*qb[0] + qa[3]*qb[1]],
+                     [qa[0]*qb[3] + qa[1]*qb[2] - qa[2]*qb[1] + qa[3]*qb[0]]])
+    return res
+
 
 def Qrm(q):
     w = q[0]
