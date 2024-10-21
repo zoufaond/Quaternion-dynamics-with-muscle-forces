@@ -2,6 +2,7 @@ import sympy as sp
 import sympy.physics.mechanics as me
 
 
+
 def min_rotglob(qa,qb):
     rot_mat = mulQuat(qa,qb)
     rot_mat_J = rot_mat.jacobian(qa+qb)
