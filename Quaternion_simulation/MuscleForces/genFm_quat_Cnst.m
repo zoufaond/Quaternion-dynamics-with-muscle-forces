@@ -28,7 +28,7 @@ muscle_len(6) = muscle_length('Thorax','Scapula',[8, -4, 0],[-4,4,-4],qCnst);
 % jacobians are also not functions of q(1) and q(5), so no derivative
 % w.r.t. of these coordinates
 
-jac = (jacobian(muscle_len,[q(2:4),q(6:8)])');
+jac = -(jacobian(muscle_len,[q(2:4),q(6:8)])');
 % calculate the muscle (Thelen 2003 without velocity function a with rigid tendon - so no differential equation needed)
 for i=1:6
     muscle_forces(i) = muscle_force(muscle_len(i),F_iso(i),akt(i),l0m(i));
