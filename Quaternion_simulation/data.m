@@ -15,15 +15,15 @@ rigid1P = [0,0,-5];
 rigid2C = [0,0,5];
 
 % random initial condition, 
-% q1init = [rand(1,4)];
-q1init = [1,0.01,0.01,0.01];
+q1init = [rand(1,4)];
+% q1init = [1,0.01,0.01,0.01];
 q1init = q1init/norm(q1init);
 % q2init = [rand(1,4)];
 q2init = [1,0.01,0.01,0.01];
 q2init = q2init/norm(q2init);
 
 % damping in the joints
-c = 10;
+c = 0;
 
 
 
@@ -32,6 +32,6 @@ l0m = [20,30,30,30,30,30];
 rng(2)
 %random force and activation of muscles
 % force = rand(1,6)*50;
-force = -[50,0,0,0,0,0];
+force = -[10,20,30,40,20,10];
 %activations are constant during the simulation
-activation = [1,0,0,0,0,0];
+activation = [10,22,31,42,23,11];
