@@ -126,7 +126,7 @@ def eul2quat_traj(num_nodes, trajectory, interval):
     
     for jnt in range(2):
         resh_traj.append(split_traj[jnt].reshape(3,num_nodes).T)
-        rot = spat.from_euler('XYZ',resh_traj[jnt])
+        rot = spat.from_euler('YZY',resh_traj[jnt])
         quat = rot.as_quat(scalar_first=True).T
         quat_res[jnt,:,:] = quat
         dquat = np.concatenate((np.zeros((4,1)),np.diff(quat)),axis=1)/interval
