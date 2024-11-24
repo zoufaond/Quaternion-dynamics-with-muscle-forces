@@ -16,7 +16,7 @@ muscle_len(4) = muscle_length('Thorax','Scapula',[-6, -6, 0],[2,-2,5],phi);
 muscle_len(5) = muscle_length('Thorax','Scapula',[-7, 5, 0],[-3,-3,0],phi);
 muscle_len(6) = muscle_length('Thorax','Scapula',[8, -4, 0],[-4,4,-4],phi);
 
-jac = (jacobian(muscle_len,phi)');
+jac = -(jacobian(muscle_len,phi)');
 
 function force = muscle_force(length, F_iso, akt, l0m)
     f_gauss = 0.25;

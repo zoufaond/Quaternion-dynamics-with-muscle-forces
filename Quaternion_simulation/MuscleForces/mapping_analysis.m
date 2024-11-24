@@ -1,4 +1,4 @@
-genEq = 1; % don't generate external torques equations, we already have them (it also takes quite a long time)
+genEq = 0; % don't generate external torques equations, we already have them (it also takes quite a long time)
 
 q = sym('q',[1 8],'real');
 phi = sym('phi',[1 6]);
