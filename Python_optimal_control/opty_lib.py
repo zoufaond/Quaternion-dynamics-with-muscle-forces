@@ -37,6 +37,17 @@ def min_rotglob(sym_vec, vals,num_nodes,interval_value):
 
     return obj_np, obj_jacobian_np
 
+def min_rotglob2(num_coords,num_nodes,interval_value):
+
+    for i in range(num_nodes):
+        obj_sep[0+i*4:4+i*4,0] = mulQuat_sp(sym_mat[0:4,i],sym_mat[4:8,i]) - sp.Matrix(vals_mat[:,i])
+
+    obj = sum(interval_value * (obj_sep.applyfunc(lambda x: x**2)))
+    obj_np = (sp.lambdify(sym_vec, obj, cse = True))
+    obj_jacobian = sp.Matrix([obj]).jacobian(sym_vec)
+    obj_jacobian_np = sp.lambdify(sym_vec, obj_jacobian,cse=True)
+
+    return obj_np, obj_jacobian_np
 
 def mulQuat_sp(qa,qb):
     res = sp.Matrix([[qa[0]*qb[0] - qa[1]*qb[1] - qa[2]*qb[2] - qa[3]*qb[3]],

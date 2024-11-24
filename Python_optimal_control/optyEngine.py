@@ -111,7 +111,7 @@ def create_trajectory(num_nodes, duration, interval_value):
     weight = np.ones(6)*0.3
     # weight = [1.5,1.2,0.2,1.1,2.1,1]
     for i in range(6):
-        icos = (-np.cos(time*np.pi)+1)*weight[i]-0.11
+        icos = (-np.cos(time*np.pi)+1)*weight[i]
         trajectory = np.append(trajectory,icos)
         d_icos = np.concatenate((np.zeros(1),np.diff(icos)/interval_value))
         d_trajectory = np.append(d_trajectory,d_icos)
