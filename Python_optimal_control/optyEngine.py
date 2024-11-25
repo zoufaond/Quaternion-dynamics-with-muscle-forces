@@ -5,104 +5,6 @@ import scipy as sc
 from scipy.spatial.transform import Rotation as spat
 import matplotlib.pyplot as plt
 
-def create_eoms_moore():
-    ### BY JASON MOORE ###
-    # just different way how create equations of motion,
-    # here one more speed is introduced, but this approach has a singularity when q0=0
-
-    t = sp.symbols('t')
-    q0A, q1A, q2A, q3A, q0B, q1B, q2B, q3B = me.dynamicsymbols('q0A, q1A, q2A, q3A, q0B, q1B, q2B, q3B')  # quaternion
-    w1A, w2A, w3A, w1B, w2B, w3B = me.dynamicsymbols('w1A, w2A, w3A, w1B, w2B, w3B')  # angular velocities
-    u0A, u0B = me.dynamicsymbols('u0A u0B')
-    l = 5
-    m = 10
-    g = 9.81
-    Ixx = 10
-    Iyy = 1
-    Izz = 5
-    F = me.dynamicsymbols('F1:7')
-
-
-    N = me.ReferenceFrame('frame_ground')
-    N0 = me.Point('point_ground')
-    N0.set_vel(N,0)
-
-    A = me.ReferenceFrame('A')
-    B = me.ReferenceFrame('B')
-    mA = me.Point('mA')
-    mB = me.Point('mB')
-    ABj = me.Point('ABj')
-
-
-    A.orient(N, 'Quaternion', [q0A, q1A, q2A, q3A])
-
-    N_w_A = A.ang_vel_in(N)
-
-    kinematical1 = sp.Matrix([
-        u0A - q0A.diff(t),
-        w1A - N_w_A.dot(A.x),
-        w2A - N_w_A.dot(A.y),
-        w3A - N_w_A.dot(A.z),
-    ])
-
-    B.orient(A, 'Quaternion', [q0B, q1B, q2B, q3B])
-
-    A_w_B = B.ang_vel_in(A)
-
-    kinematical2 = (sp.Matrix([
-        u0B - q0B.diff(t),
-        w1B - A_w_B.dot(B.x),
-        w2B - A_w_B.dot(B.y),
-        w3B - A_w_B.dot(B.z),
-    ]))
-
-    A.set_ang_vel(N, w1A*A.x + w2A*A.y + w3A*A.z)
-    B.set_ang_vel(A, w1B*B.x + w2B*B.y + w3B*B.z)
-
-    mA.set_pos(N0, -l/2 * A.z)
-    mA.v2pt_theory(N0,N,A)
-    FG1 = [(mA, -m * g * N.z)]
-
-    ABj.set_pos(N0, -l * A.z)
-    ABj.v2pt_theory(N0,N,A)
-
-
-    mB.set_pos(ABj, -l/2 * B.z)
-    mB.v2pt_theory(ABj,N,B)
-
-
-    I1 = me.inertia(A, Ixx, Iyy, Izz)
-    I2 = me.inertia(B, Ixx, Iyy, Izz)
-
-    BODY = []
-    BODY.append(me.RigidBody('Abody', mA, A, m, (I1, mA)))
-    BODY.append(me.RigidBody('Bbody', mB, B, m, (I2, mB)))
-
-    kinematical = sp.Matrix([[kinematical1],[kinematical2]])
-
-    FG2 = [(mB, -m * g * N.z)]
-    Torque1 = [(A, F[0]*A.x+F[1]*A.y+F[2]*A.z)]
-    Torque2 = [(B, F[3]*B.x+F[4]*B.y+F[5]*B.z)]
-
-    holonomic = sp.Matrix([[q0A**2 + q1A**2 + q2A**2 + q3A**2 - 1],
-                           [q0B**2 + q1B**2 + q2B**2 + q3B**2 - 1]])
-    kane = me.KanesMethod(
-        N,
-        [q1A, q2A, q3A, q1B, q2B, q3B],
-        [w1A, w2A, w3A, w1B, w2B, w3B],
-        kd_eqs=kinematical,
-        q_dependent=[q0A,q0B],
-        u_dependent=[u0A,u0B],
-        configuration_constraints=holonomic,
-        velocity_constraints=holonomic.diff(t),
-    )
-    (fr, frstar) = kane.kanes_equations(BODY, (FG1+FG2+Torque1+Torque2))
-    
-    eoms = sp.Matrix(kinematical).col_join(fr+frstar).col_join(holonomic)
-    state_symbols = [q0A, q1A, q2A, q3A, q0B, q1B, q2B, q3B, w1A, w2A, w3A, w1B, w2B, w3B, u0A, u0B]
-    
-    return eoms, state_symbols, F
-
 def create_trajectory(num_nodes, duration, interval_value):
     trajectory = np.zeros([6,num_nodes])
     d_trajectory = np.zeros([6,num_nodes])
@@ -121,25 +23,18 @@ def create_trajectory(num_nodes, duration, interval_value):
 
 def eul2quat_traj(num_nodes, euler, interval):
     trajectory = np.zeros([8,num_nodes])
-    quat_res = np.zeros([2,4,num_nodes])
-    w = np.zeros([2,3,num_nodes])
-    u0 = []
+    w = np.zeros([8,num_nodes])
     
     for jnt in range(2):
         rot = spat.from_euler('YZX',euler[jnt*3:(jnt+1)*3].T)
-        quat = rot.as_quat(scalar_first=True)
-        trajectory[jnt*4:(jnt+1)*4,:] = quat.T
+        quat = rot.as_quat(scalar_first=True).T
+        trajectory[jnt*4:(jnt+1)*4,:] = quat
         dquat = np.concatenate((np.zeros((4,1)),np.diff(quat)),axis=1)/interval
-        u0.append(dquat[0,:])
         for i in range(num_nodes):
-            w[jnt,:,i] = 2*G(quat[:,i])@dquat[:,i]
+            w[jnt*3:(jnt+1)*3,i] = 2*G(quat[:,i])@dquat[:,i]
+        w[jnt+6,:] = dquat[0,:]
     
-    Q_my = quat_res.flatten()
-    init_guess_my = np.block([quat_res.flatten(),w.flatten()])
-    Q_moore = Q_my
-    init_guess_moore = np.concatenate((init_guess_my,np.array(u0).flatten()))
-    
-    return Q_my,init_guess_my,Q_moore,init_guess_moore
+    return trajectory,w
 
 def interpolate_results(num_nodes, results, num_vars, num_nodes_new, time):
     res = []

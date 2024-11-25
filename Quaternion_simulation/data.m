@@ -34,4 +34,4 @@ rng(2)
 % force = rand(1,6)*50;
 force = -[10,20,30,40,20,10];
 %activations are constant during the simulation
-activation = [10,22,31,42,23,11];
+activation = [1,1,1,1,1,1];
