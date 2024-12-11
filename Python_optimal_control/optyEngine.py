@@ -11,10 +11,11 @@ def create_trajectory(num_nodes, duration, interval_value):
     time = np.linspace(0.0, duration, num=num_nodes)
     np.random.seed(5)
     # weight = np.random.randn(6)*0.4
-    weight = np.ones(6)*0.3
-    # weight = [1.5,1.2,0.2,1.1,2.1,1]
+    # weight = np.ones(6)*0.5
+    weight = [0.0,0.5,0.0,0.0,0.0,0.0]
+    offset = [0.2,0.0,-0.2,0.0,0.0,0.0]
     for i in range(6):
-        icos = (-np.cos(time*np.pi)+1)*weight[i]
+        icos = (-np.cos(time*np.pi)+1)*weight[i]+offset[i]
         trajectory[i,:] = icos
         d_icos = np.concatenate((np.zeros(1),np.diff(icos)/interval_value))
         d_trajectory[i,:] = d_icos
@@ -26,7 +27,7 @@ def eul2quat_traj(num_nodes, euler, interval):
     w = np.zeros([8,num_nodes])
     
     for jnt in range(2):
-        rot = spat.from_euler('YZX',euler[jnt*3:(jnt+1)*3].T)
+        rot = spat.from_euler('YZY',euler[jnt*3:(jnt+1)*3].T)
         quat = rot.as_quat(scalar_first=True).T
         trajectory[jnt*4:(jnt+1)*4,:] = quat
         dquat = np.concatenate((np.zeros((4,1)),np.diff(quat)),axis=1)/interval
