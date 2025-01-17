@@ -1,7 +1,6 @@
 function jac = genFm_quat_Cnst(genEq)
-% creates external torques from the constrained muscle length 
+% function create external torques from the constrained muscle length 
 % based only on the q2,q3,q4 elements (q1 = sqrt(1-q2^2-q3^2-q4^2))
-% calculation takes longer than because of the sqrt and symbolic jacobian
 
 % two spherical joints = 2*4 quaternion elements
 q = sym('q',[1 8],'real');
@@ -11,24 +10,21 @@ l0m = sym('l0m', [1 6],'real');
 akt = sym('akt',[6 1],'real');
 t = sym('t','real');
 
-% muscles with random attachments (but needs to be the same as in the SimScape model)
 % now the muscles are not functions of q1 (q(1) and q(5) in this case)
 
 q1Cst = [sqrt(1-q(2)^2-q(3)^2-q(4)^2),q(2),q(3),q(4)];
 q2Cst = [sqrt(1-q(6)^2-q(7)^2-q(8)^2),q(6),q(7),q(8)];
 qCnst = [q1Cst,q2Cst];
-muscle_len(1) = muscle_length('Thorax','Clavicle',[-10, 12, 0],[1, 1, -10],qCnst);
-muscle_len(2) = muscle_length('Thorax','Scapula',[-10, 12, 0],[-1, 1, -10],qCnst);
-muscle_len(3) = muscle_length('Clavicle','Scapula',[-4 5 0],[1 -6 3],qCnst);
-muscle_len(4) = muscle_length('Thorax','Scapula',[-6, -6, 0],[2,-2,5],qCnst);
-muscle_len(5) = muscle_length('Thorax','Scapula',[-7, 5, 0],[-3,-3,0],qCnst);
-muscle_len(6) = muscle_length('Thorax','Scapula',[8, -4, 0],[-4,4,-4],qCnst);
+muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1, 0.1, -1],qCnst);
+muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1, 0.1, -1],qCnst);
+muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.4 0.5 0],[0.1 -0.6 0.3],qCnst);
+muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[0.2,-0.2,0.5],qCnst);
+muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[-0.3,-0.3,0],qCnst);
+muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[-0.4,0.4,-0.4],qCnst);
 
-% Jacobian of muscle lengths (in Euler or Tait-Bryan angles this represents the moment arms)
-% jacobians are also not functions of q(1) and q(5), so no derivative
-% w.r.t. of these coordinates
+% Jacobian of muscle lengths
 
-jac = -(jacobian(muscle_len,[q(2:4),q(6:8)])');
+jac = -(jacobian(muscle_len,[q(2:4),q(6:8)])'); %the lenths are not functions of q(1) and q(5)
 % calculate the muscle (Thelen 2003 without velocity function a with rigid tendon - so no differential equation needed)
 for i=1:6
     muscle_forces(i) = muscle_force(muscle_len(i),F_iso(i),akt(i),l0m(i));
@@ -42,7 +38,7 @@ F1 = invJtrans(q(1:4))*fe(1:3);
 F2 = invJtrans(q(5:8))*fe(4:6);
 FE = ([F1;F2]);
 
-% generate optimized function
+% generate function
 matlabFunction(FE,'file','FM_quat_Cnst','vars',{t,q,F_iso,l0m,akt});
 end
 
@@ -59,13 +55,13 @@ function length = muscle_length(origin, insertion, O_pos, I_pos, q)
     elseif strcmp(origin, 'Thorax') && strcmp(insertion, 'Scapula')
         O = position(O_pos(1), O_pos(2), O_pos(3));
         RW_C = Qrm(q(1:4));
-        TC_S = T_z(-10);
+        TC_S = T_z(-1);
         RC_S = Qrm(q(5:8));
         I = RW_C * TC_S * RC_S * position(I_pos(1), I_pos(2), I_pos(3));
 
     elseif strcmp(origin, 'Clavicle') && strcmp(insertion, 'Scapula')
         O =position(O_pos(1), O_pos(2), O_pos(3));
-        TC_S = T_z(-10);
+        TC_S = T_z(-1);
         RC_S = Qrm(q(5:8));
         I =TC_S*RC_S * position(I_pos(1), I_pos(2), I_pos(3));
     end

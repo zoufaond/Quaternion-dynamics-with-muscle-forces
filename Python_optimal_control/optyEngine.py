@@ -12,8 +12,8 @@ def create_trajectory(num_nodes, duration, interval_value):
     np.random.seed(5)
     # weight = np.random.randn(6)*0.4
     # weight = np.ones(6)*0.5
-    weight = [0.0,0.5,0.0,0.0,0.0,0.0]
-    offset = [0.2,0.0,-0.2,0.0,0.0,0.0]
+    weight = [0.2,0.2,0.2,0.2,0.2,0.2]
+    offset = [0.1,0.3,0.1,0.1,0.3,0.1]
     for i in range(6):
         icos = (-np.cos(time*np.pi)+1)*weight[i]+offset[i]
         trajectory[i,:] = icos
@@ -61,6 +61,21 @@ def objective_function(num_coords,interval_value):
     obj_traj_jac_np = sp.lambdify((x,x_traj),obj_traj_jac)
 
     return obj_traj_np,obj_traj_jac_np
+
+def objective_min_diff(num_nodes, interval_value):
+    act = sp.Matrix(sp.symbols('act0:' + str(num_nodes)))
+    obj_list = []
+
+    for i in range(num_nodes-1):
+        act_diff = act[i+1] - act[i]
+        obj_list.append(interval_value * (act_diff**2))
+
+    obj = sum(obj_list)
+    obj_jac = sp.Matrix([obj]).jacobian(act)
+    obj_np = sp.lambdify([act],obj)
+    obj_jac_np = sp.lambdify([act],obj_jac)
+
+    return obj_np,obj_jac_np
 
 def objective_rotglob_quat(num_coords,interval_value):
     x = sp.Matrix(sp.symbols(f'x1:{num_coords+1}'))

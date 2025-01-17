@@ -9,12 +9,12 @@ F_iso = sym('F_iso',[1 6]);
 l0m = sym('l0m', [1 6]);
 akt = sym('akt',[1 6]);
 t = sym('t');
-muscle_len(1) = muscle_length('Thorax','Clavicle',[-10, 12, 0],[1, 1, -10],phi);
-muscle_len(2) = muscle_length('Thorax','Scapula',[-10, 12, 0],[-1, 1, -10],phi);
-muscle_len(3) = muscle_length('Clavicle','Scapula',[-4 5 0],[1 -6 3],phi);
-muscle_len(4) = muscle_length('Thorax','Scapula',[-6, -6, 0],[2,-2,5],phi);
-muscle_len(5) = muscle_length('Thorax','Scapula',[-7, 5, 0],[-3,-3,0],phi);
-muscle_len(6) = muscle_length('Thorax','Scapula',[8, -4, 0],[-4,4,-4],phi);
+muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1, 0.1, -1],phi);
+muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1, 0.1, -1],phi);
+muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.4 0.5 0],[0.1 -0.6 0.3],phi);
+muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[0.2,-0.2,0.5],phi);
+muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[-0.3,-0.3,0],phi);
+muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[-0.4,0.4,-0.4],phi);
 
 jac = -(jacobian(muscle_len,phi)');
 
@@ -31,13 +31,13 @@ function length = muscle_length(origin, insertion, O_pos, I_pos, q)
     elseif strcmp(origin, 'Thorax') && strcmp(insertion, 'Scapula')
         O = position(O_pos(1), O_pos(2), O_pos(3));
         RW_C = R_y(q(1)) * R_z(q(2)) * R_y(q(3));
-        TC_S = T_z(-10);
+        TC_S = T_z(-1);
         RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
         I = RW_C * TC_S * RC_S * position(I_pos(1), I_pos(2), I_pos(3));
 
     elseif strcmp(origin, 'Clavicle') && strcmp(insertion, 'Scapula')
         O =position(O_pos(1), O_pos(2), O_pos(3));
-        TC_S = T_z(-10);
+        TC_S = T_z(-1);
         RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
         I = TC_S*RC_S * position(I_pos(1), I_pos(2), I_pos(3));
     end

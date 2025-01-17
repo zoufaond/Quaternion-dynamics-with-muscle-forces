@@ -22,6 +22,35 @@ def plot_results(solution, vals , time, num_nodes):
     
     # return vals_mat
 
+def sol_quat2eul(solution, num_q, num_nodes):
+    traj_quat = solution[:(num_nodes*num_q)]
+    traj_splitted = np.vstack(np.split(traj_quat,num_q)).T
+    joints = ('YZY','YZY')
+    traj_eul = np.zeros([num_nodes,6])
+    
+    for i,jnt in enumerate(joints):
+        for j in range(num_nodes):
+            traj_eul[j,i*3:(i+1)*3] = quat2eul(traj_splitted[j,i*4:(i+1)*4],jnt)
+
+    return traj_eul
+
+
+def quat2eul(quat,seq):
+    rotm = Qrm_np(quat)
+
+    if seq == 'YZY':
+        z = np.arccos(rotm[1,1])
+        yy = np.arctan2(rotm[1,2],rotm[1,0])
+        y = np.arctan2(rotm[2,1],-rotm[0,1])
+        eul = np.array([y,z,yy])
+    elif seq == 'YZX':
+        z = np.arcsin(rotm[1,0])
+        x = np.arctan2(-rotm[1,2],rotm[1,1])
+        y = np.arctan2(-rotm[2,0],rotm[0,0])
+        eul = np.array([y,z,x])
+
+    return eul
+
 def min_rotglob(sym_vec, vals,num_nodes,interval_value):
     obj_sep = sp.zeros(len(vals),1)
     sym_mat = sym_vec.reshape(8,num_nodes)
@@ -70,6 +99,18 @@ def Qrm(q):
     y = q[2]
     z = q[3]
     res =  sp.Matrix([[1-2*(y**2+z**2), 2*(x*y-z*w), 2*(x*z+y*w),0],
+                      [2*(x*y+z*w), 1-2*(x**2+z**2), 2*(y*z-x*w),0],
+                      [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x**2+y**2),0],
+                      [0           ,0          ,0             ,1]])
+
+    return res
+
+def Qrm_np(q):
+    w = q[0]
+    x = q[1]
+    y = q[2]
+    z = q[3]
+    res =  np.array([[1-2*(y**2+z**2), 2*(x*y-z*w), 2*(x*z+y*w),0],
                       [2*(x*y+z*w), 1-2*(x**2+z**2), 2*(y*z-x*w),0],
                       [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x**2+y**2),0],
                       [0           ,0          ,0             ,1]])
