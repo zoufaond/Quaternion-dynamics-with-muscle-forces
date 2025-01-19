@@ -15,12 +15,12 @@ t = sym('t','real');
 q1Cst = [sqrt(1-q(2)^2-q(3)^2-q(4)^2),q(2),q(3),q(4)];
 q2Cst = [sqrt(1-q(6)^2-q(7)^2-q(8)^2),q(6),q(7),q(8)];
 qCnst = [q1Cst,q2Cst];
-muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1, 0.1, -1],qCnst);
-muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1, 0.1, -1],qCnst);
-muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.4 0.5 0],[0.1 -0.6 0.3],qCnst);
-muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[0.2,-0.2,0.5],qCnst);
-muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[-0.3,-0.3,0],qCnst);
-muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[-0.4,0.4,-0.4],qCnst);
+muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],qCnst);
+muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],qCnst);
+muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -0.6],[0.1 0 -0.3],qCnst);
+muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[-0.1,0,-0.5],qCnst);
+muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[0,-0.1,-0.3],qCnst);
+muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[0,0.1,-0.4],qCnst);
 
 % Jacobian of muscle lengths
 

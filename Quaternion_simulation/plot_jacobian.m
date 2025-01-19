@@ -110,92 +110,92 @@ end
 
 
 % %%
-% jnts = {'R_y^{U}','R_z^{U}','R_{yy}^{U}','R_y^{L}','R_z^{L}','R_{yy}^{L}'};
-% 
-% figure
-% for j = 1:6
-%     subplot(2,3,j)
-%     plot(time(1:end), JEulval_mus(j,1:end),'b',time(1:end),JEulfromJQ(j,1:end),'r--','LineWidth',1.7)
-%     % title('$$'+jnts{j}+'$$','Interpreter','latex','FontSize',12)
-%     if j == 4
-%         title({newline,['\indent $',jnts{j},'$']},'Interpreter','latex','FontSize',15)
-%     else
-%         title({newline,['$',jnts{j},'$']},'Interpreter','latex','FontSize',15)
-%     end
-%     xlabel('time [s]')
-%     ylabel({'Moment';'arm [m]'})
-%     axis([-inf,inf,-inf,inf])
-%     % ylabel('$$\textbf{R}^*_{Q_'+string(j)+'}$$','Interpreter','latex','FontSize',12)
-% end
-% % sgtitle('Jacobian in Euler coordinates (moment arms)')
-% fig = gcf;
-% fig.Position(3:4)=[800,350];
-% Lgnd = legend({'Euler ML Jacobian',['Quaternion ML Jacobian' newline 'mapped to Euler coordinates']});
-% Lgnd.Position(1) = 0.0;
-% Lgnd.Position(2) = 0.365;
-% % text1 = annotation('textbox', [0.3, 0.805, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13);
-% % text1.Rotation = 0;
-% % text2 = annotation('textbox', [0.3, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13);
-% % text2.Rotation = 0;
-% text1 = annotation('textbox', [0.3, 0.44, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
+jnts = {'R_y^{U}','R_z^{U}','R_{yy}^{U}','R_y^{L}','R_z^{L}','R_{yy}^{L}'};
+
+figure
+for j = 1:6
+    subplot(2,3,j)
+    plot(time(1:end), JEulval_mus(j,1:end),'b',time(1:end),JEulfromJQ(j,1:end),'r--','LineWidth',1.7)
+    % title('$$'+jnts{j}+'$$','Interpreter','latex','FontSize',12)
+    if j == 4
+        title({newline,['\indent $',jnts{j},'$']},'Interpreter','latex','FontSize',15)
+    else
+        title({newline,['$',jnts{j},'$']},'Interpreter','latex','FontSize',15)
+    end
+    xlabel('time [s]')
+    ylabel({'Moment';'arm [m]'})
+    axis([-inf,inf,-inf,inf])
+    % ylabel('$$\textbf{R}^*_{Q_'+string(j)+'}$$','Interpreter','latex','FontSize',12)
+end
+% sgtitle('Jacobian in Euler coordinates (moment arms)')
+fig = gcf;
+fig.Position(3:4)=[800,350];
+Lgnd = legend({'Euler ML Jacobian',['Quaternion ML Jacobian' newline 'mapped to Euler coordinates']});
+Lgnd.Position(1) = 0.0;
+Lgnd.Position(2) = 0.365;
+% text1 = annotation('textbox', [0.3, 0.805, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13);
 % text1.Rotation = 0;
-% text2 = annotation('textbox', [0.3, 0.355, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
+% text2 = annotation('textbox', [0.3, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13);
 % text2.Rotation = 0;
-% annotation('line',[0.25,0.9],[0.45,0.45],'LineWidth',2)
+text1 = annotation('textbox', [0.3, 0.44, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
+text1.Rotation = 0;
+text2 = annotation('textbox', [0.3, 0.355, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
+text2.Rotation = 0;
+annotation('line',[0.25,0.9],[0.45,0.45],'LineWidth',2)
 % 
 % % exportgraphics(fig,'Moment arms.png','Resolution',600);
 % % % % 
 % % % % 
 % % % 
 % % % 
-% figure
-% qcoord = 0;
-% body = {'^{U}','^{L}'};
-% ibody = 1;
-% for j = 1:8
-%     subplot(2,4,j)
-%     plot(time(1:end), JQfromJEul_mus(j,(1:end)),'b',time(1:end),JQval_mus(j,(1:end)),'r--','LineWidth',1.7)
-%     ylabel({'$$\textbf{R}_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
-% 
-%     % if j == 5
-%     %     % title({newline,'$$\indent \indent \frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-%     %     ylabel({'$$\textbf{R}^*_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
-%     % 
-%     % else
-%     %     title({newline, '$$\frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-%     % 
-%     % end
-%     xlabel('time [s]')
-%     axis([-inf,inf,-inf,inf])
-% 
-%     % ylabel('$[-]$','Interpreter','latex','FontSize',12)
-% 
-% 
-%     if j == 4 || j == 5 || j == 6
-%         title(newline)
-%     end
-% 
-%     qcoord = qcoord +1;
-%     if j == 4
-%         qcoord = 0;
-%         ibody = ibody+1;
-%     end
-% end
-% % sgtitle('Jacobian in quaternion coordinates (section 2)')
-% fig = gcf;
-% fig.Position(3:4)=[800,350];
-% Lgnd = legend({['Euler ML Jacobian mapped' newline 'to quaternion coordinates'],'Quaternion ML Jacobian'});
-% Lgnd.Position(1) = 0.01;
-% Lgnd.Position(2) = 0.375;
-% % text1 = annotation('textbox', [0.47, 0.8, 0.1, 0.1], 'string','Upper joint' ,'FontSize',10);
-% % text1.Rotation = 0;
-% % text2 = annotation('textbox', [0.47, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',10);
-% % text2.Rotation = 0;
-% text1 = annotation('textbox', [0.27, 0.45, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
+figure
+qcoord = 0;
+body = {'^{U}','^{L}'};
+ibody = 1;
+for j = 1:8
+    subplot(2,4,j)
+    plot(time(1:end), JQfromJEul_mus(j,(1:end)),'b',time(1:end),JQval_mus(j,(1:end)),'r--','LineWidth',1.7)
+    ylabel({'$$\textbf{R}_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
+
+    % if j == 5
+    %     % title({newline,'$$\indent \indent \frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
+    %     ylabel({'$$\textbf{R}^*_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
+    % 
+    % else
+    %     title({newline, '$$\frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
+    % 
+    % end
+    xlabel('time [s]')
+    axis([-inf,inf,-inf,inf])
+
+    % ylabel('$[-]$','Interpreter','latex','FontSize',12)
+
+
+    if j == 4 || j == 5 || j == 6
+        title(newline)
+    end
+
+    qcoord = qcoord +1;
+    if j == 4
+        qcoord = 0;
+        ibody = ibody+1;
+    end
+end
+% sgtitle('Jacobian in quaternion coordinates (section 2)')
+fig = gcf;
+fig.Position(3:4)=[800,350];
+Lgnd = legend({['Euler ML Jacobian mapped' newline 'to quaternion coordinates'],'Quaternion ML Jacobian'});
+Lgnd.Position(1) = 0.01;
+Lgnd.Position(2) = 0.375;
+% text1 = annotation('textbox', [0.47, 0.8, 0.1, 0.1], 'string','Upper joint' ,'FontSize',10);
 % text1.Rotation = 0;
-% text2 = annotation('textbox', [0.27, 0.375, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
+% text2 = annotation('textbox', [0.47, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',10);
 % text2.Rotation = 0;
-% annotation('line',[0.23,0.9],[0.46,0.46],'LineWidth',2)
+text1 = annotation('textbox', [0.27, 0.45, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
+text1.Rotation = 0;
+text2 = annotation('textbox', [0.27, 0.375, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
+text2.Rotation = 0;
+annotation('line',[0.23,0.9],[0.46,0.46],'LineWidth',2)
 % % 
 % % exportgraphics(fig,'JQ_comparison.png','Resolution',600);
 
@@ -247,7 +247,7 @@ text2 = annotation('textbox', [0.3, 0.375, 0.1, 0.1], 'string','Lower joint' ,'F
 text2.Rotation = 0;
 annotation('line',[0.23,0.9],[0.475,0.475],'LineWidth',2)
 
-exportgraphics(fig,'JQCnst_comparison.png','Resolution',600);
+% exportgraphics(fig,'JQCnst_comparison.png','Resolution',600);
 
 
 % figure 
