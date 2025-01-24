@@ -1,4 +1,4 @@
-function jac = genFM_seq()
+function jac = genFM_seq(model)
 % this one just calculates the jacobian (here moment arms w.r.t. the coordinates)
 % we can use whatever sequence we want, here I use YZY just to use on
 % something unusual
@@ -9,35 +9,40 @@ F_iso = sym('F_iso',[1 6]);
 l0m = sym('l0m', [1 6]);
 akt = sym('akt',[1 6]);
 t = sym('t');
-muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],phi);
-muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],phi);
-muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -0.6],[0.1 0 -0.3],phi);
-muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[-0.1,0,-0.5],phi);
-muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[0,-0.1,-0.3],phi);
-muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[0,0.1,-0.4],phi);
 
-jac = -(jacobian(muscle_len,phi)');
+for i = 1:6
+    current_muscle = sprintf('muscle%u',i);
+    orig_body = model.(current_muscle).origin_body;
+    orig = model.(current_muscle).origin;
+    ins_body = model.(current_muscle).insertion_body;
+    ins = model.(current_muscle).insertion;
+
+    muscle_lengths(i) = muscle_length(orig_body,ins_body,orig,ins,phi,model);
+    muscle_forces(i) = muscle_force(muscle_lengths(i),F_iso(i),akt(i),l0m(i));
+end
+
+jac = -(jacobian(muscle_lengths,phi)');
 
 function force = muscle_force(length, F_iso, akt, l0m)
     f_gauss = 0.25;
     force = (((length / l0m)^3) * exp(8 * length / l0m - 12.9) + (exp(-(length / l0m - 1)^2 / f_gauss)) * akt) * F_iso;
 end
 
-function length = muscle_length(origin, insertion, O_pos, I_pos, q)
-    if strcmp(origin, 'Thorax') && strcmp(insertion, 'Clavicle')
+function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)
+    if origin == 1 && insertion == 2
         O = position(O_pos(1), O_pos(2), O_pos(3));
         I =  R_y(q(1)) * R_z(q(2)) * R_y(q(3)) * position(I_pos(1), I_pos(2), I_pos(3));
         
-    elseif strcmp(origin, 'Thorax') && strcmp(insertion, 'Scapula')
+    elseif origin == 1 && insertion == 3
         O = position(O_pos(1), O_pos(2), O_pos(3));
         RW_C = R_y(q(1)) * R_z(q(2)) * R_y(q(3));
-        TC_S = T_z(-1);
+        TC_S = T_z(-model.l);
         RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
         I = RW_C * TC_S * RC_S * position(I_pos(1), I_pos(2), I_pos(3));
 
-    elseif strcmp(origin, 'Clavicle') && strcmp(insertion, 'Scapula')
+    elseif origin == 2 && insertion == 3
         O =position(O_pos(1), O_pos(2), O_pos(3));
-        TC_S = T_z(-1);
+        TC_S = T_z(-model.l);
         RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
         I = TC_S*RC_S * position(I_pos(1), I_pos(2), I_pos(3));
     end

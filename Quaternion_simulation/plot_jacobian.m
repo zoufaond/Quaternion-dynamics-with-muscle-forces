@@ -1,39 +1,44 @@
 clear all
 clc
 addpath MuscleForces\
-genEq = 0; % don't generate external torques equations, we already have them (it also takes quite a long time)
+load("parameters.mat");
+
+% 1 .. generate functions of external torques
+genEq = 0;
 
 q = sym('q',[1 8],'real');
 phi = sym('phi',[1 6],'real');
 
-% generate the jacobians of muscle lengths using all quaternions, length
-% using the constraint and only 3 elements of quaternion and muscle length
-% using YZY rotations for spherical joint
-JQsym = genFm_quat(genEq); % unconstrained muscle lengths jacobian
-JQCnstsym = genFm_quat_Cnst(genEq); % constrained muscle lengths jacobian
-JEulsym = genFM_seq(); % muscle lengths jacobian for YZY sequence of rotations (both joints have YZY)
+JQsym = genFm_quat(genEq,model); % unconstrained muscle lengths jacobian
+JQCnstsym = genFm_quat_Cnst(genEq,model); % constrained muscle lengths jacobian
+JEulsym = genFM_seq(model); % muscle lengths jacobian for YZY sequence of rotations
 disp('Muscle Jacobians derived')
 
-% create anonymous functions
+% anonymous functions
 JQ = matlabFunction(JQsym,'Vars',{q});
 JQCnst = matlabFunction(JQCnstsym,'Vars',{q});
 JEul = matlabFunction(JEulsym,'Vars',{phi});
 
 %%
 % run forward dynamics in simulink
+% simulink calls initFunction
 out = sim("double_3D_pend_Quat.slx");
 %%
+% out .. output from simulink
+% out.time .. timespan of simulation
+% out.q_1/q_2 .. resulting quaternions
+% out.yzy_1/yzy_2 .. resulting yzy angles
 
 time = out.tout;
 quat_1 = reshape(out.q_1.Data,[4,length(time)])';
-% quat_1 = positive_quat(quat_1);
 eul_1 = reshape(out.yzy_1.Data,[3,length(time)])';
 quat_2 = reshape(out.q_2.Data,[4,length(time)])';
-% quat_2 = positive_quat(quat_2);
 eul_2 = reshape(out.yzy_2.Data,[3,length(time)])';
 
 eul_full = [eul_1,eul_2];
 quat_full = [quat_1,quat_2];
+
+
 JQfromJEulCnst_mus = zeros(6,length(time));
 JQCnstval_mus = zeros(6,length(time));
 JQfromJEul_mus = zeros(8,length(time));
@@ -41,9 +46,11 @@ JQval_mus = zeros(8,length(time));
 JEulfromJQ = zeros(6,length(time));
 JEulval_mus = zeros(6,length(time));
 
+% analyze element 2
 imus = 2;
+
 for i = 1:length(time)
-    % get current seq and quat values
+    % get current yzy and quat values
     phiVal = eul_full(i,:);
     quatVal = quat_full(i,:);
 
@@ -58,18 +65,18 @@ for i = 1:length(time)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %                             SECTION GRAF                            %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % get the i-th muscle length Jacobian in quaternion coordinates (w.r.t. all quaternion elements)
+    % get the i-th muscle length Jacobian in quaternions (w.r.t. all quaternion elements)
     JQval = JQ(quatVal);
     JQval_mus(:,i) = JQval(:,imus);
 
-    % map Jacobian from quaternion coordinates to spatial coordinates
+    % map Jacobian from quaternion to spatial coordinates
     spatJfromJQ = quat2spatial(JQval_mus(:,i),quatVal,2);
 
     % map the quaternion Jacobian from spatial coordinates to Euler
     % coordinates (to see what moment arms the quaternion Jacobian represents)
     JEulfromJQ(:,i) = spatial2eul(spatJfromJQ,phiVal,2);
 
-    % let's now try to map the moment arms back to quaternion Jacobian (this doesn't give us correct muscle length Jacobian)
+    % the moment arms back to quaternion Jacobian (this doesn't give us correct muscle length Jacobian)
     JQfromJEul = spatial2quat(SpatJfromJEul,quatVal,2);
     JQfromJEul_mus(:,i) = JQfromJEul(:,imus);
 
@@ -109,7 +116,7 @@ for i = 1:length(time)
 end
 
 
-% %%
+% Moment arms
 jnts = {'R_y^{U}','R_z^{U}','R_{yy}^{U}','R_y^{L}','R_z^{L}','R_{yy}^{L}'};
 
 figure
@@ -143,11 +150,11 @@ text2 = annotation('textbox', [0.3, 0.355, 0.1, 0.1], 'string','Lower joint' ,'F
 text2.Rotation = 0;
 annotation('line',[0.25,0.9],[0.45,0.45],'LineWidth',2)
 % 
-% % exportgraphics(fig,'Moment arms.png','Resolution',600);
-% % % % 
-% % % % 
-% % % 
-% % % 
+% exportgraphics(fig,'Moment arms.png','Resolution',600);
+
+
+
+% unconstrained approach
 figure
 qcoord = 0;
 body = {'^{U}','^{L}'};
@@ -181,7 +188,6 @@ for j = 1:8
         ibody = ibody+1;
     end
 end
-% sgtitle('Jacobian in quaternion coordinates (section 2)')
 fig = gcf;
 fig.Position(3:4)=[800,350];
 Lgnd = legend({['Euler ML Jacobian mapped' newline 'to quaternion coordinates'],'Quaternion ML Jacobian'});
@@ -199,7 +205,7 @@ annotation('line',[0.23,0.9],[0.46,0.46],'LineWidth',2)
 % % 
 % % exportgraphics(fig,'JQ_comparison.png','Resolution',600);
 
-% 
+% Constrained approach
 figure
 qcoord = 1;
 body = {'^{U}','^{L}'};
@@ -225,6 +231,7 @@ for j = 1:6
     end
     
     axis([-inf,inf,-inf,inf])
+    
 
     % ylabel('$$\textbf{R}^*_{Q_'+string(qcoord)+body(ibody)+' [-]}$$','Interpreter','latex','FontSize',12)
     % ylabel('$$[-]$$','Interpreter','latex','FontSize',12)

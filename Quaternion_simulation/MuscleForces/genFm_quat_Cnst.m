@@ -1,4 +1,4 @@
-function jac = genFm_quat_Cnst(genEq)
+function jac = genFm_quat_Cnst(genEq,model)
 % function create external torques from the constrained muscle length 
 % based only on the q2,q3,q4 elements (q1 = sqrt(1-q2^2-q3^2-q4^2))
 
@@ -15,20 +15,21 @@ t = sym('t','real');
 q1Cst = [sqrt(1-q(2)^2-q(3)^2-q(4)^2),q(2),q(3),q(4)];
 q2Cst = [sqrt(1-q(6)^2-q(7)^2-q(8)^2),q(6),q(7),q(8)];
 qCnst = [q1Cst,q2Cst];
-muscle_len(1) = muscle_length('Thorax','Clavicle',[-1, 1.2, 0],[0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],qCnst);
-muscle_len(2) = muscle_length('Thorax','Scapula',[-1, 1.2, 0],[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -1],qCnst);
-muscle_len(3) = muscle_length('Clavicle','Scapula',[-0.1*sqrt(2)/2 0.1*sqrt(2)/2 -0.6],[0.1 0 -0.3],qCnst);
-muscle_len(4) = muscle_length('Thorax','Scapula',[-0.6, -0.6, 0],[-0.1,0,-0.5],qCnst);
-muscle_len(5) = muscle_length('Thorax','Scapula',[-0.7, 0.5, 0],[0,-0.1,-0.3],qCnst);
-muscle_len(6) = muscle_length('Thorax','Scapula',[0.8, -0.4, 0],[0,0.1,-0.4],qCnst);
+
+for i = 1:6
+    current_muscle = sprintf('muscle%u',i);
+    orig_body = model.(current_muscle).origin_body;
+    orig = model.(current_muscle).origin;
+    ins_body = model.(current_muscle).insertion_body;
+    ins = model.(current_muscle).insertion;
+
+    muscle_lengths(i) = muscle_length(orig_body,ins_body,orig,ins,qCnst,model);
+    muscle_forces(i) = muscle_force(muscle_lengths(i),F_iso(i),akt(i),l0m(i));
+end
 
 % Jacobian of muscle lengths
-
-jac = -(jacobian(muscle_len,[q(2:4),q(6:8)])'); %the lenths are not functions of q(1) and q(5)
+jac = -(jacobian(muscle_lengths,[q(2:4),q(6:8)])'); %the lenths are not functions of q(1) and q(5)
 % calculate the muscle (Thelen 2003 without velocity function a with rigid tendon - so no differential equation needed)
-for i=1:6
-    muscle_forces(i) = muscle_force(muscle_len(i),F_iso(i),akt(i),l0m(i));
-end
 
 if genEq == 1
 % calculate [6x1] vector of 'quaternion-space' forces (based on the quaternion constraint)
@@ -47,21 +48,21 @@ function force = muscle_force(length, F_iso, akt, l0m)
     force = (((length / l0m)^3) * exp(8 * length / l0m - 12.9) + (exp(-(length / l0m - 1)^2 / f_gauss)) * akt) * F_iso;
 end
 
-function length = muscle_length(origin, insertion, O_pos, I_pos, q)
-    if strcmp(origin, 'Thorax') && strcmp(insertion, 'Clavicle')
+function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)
+    if origin == 1 && insertion == 2
         O = position(O_pos(1), O_pos(2), O_pos(3));
         I = Qrm(q(1:4)) * position(I_pos(1), I_pos(2), I_pos(3));
         
-    elseif strcmp(origin, 'Thorax') && strcmp(insertion, 'Scapula')
+    elseif origin == 1 && insertion == 3
         O = position(O_pos(1), O_pos(2), O_pos(3));
         RW_C = Qrm(q(1:4));
-        TC_S = T_z(-1);
+        TC_S = T_z(-model.l);
         RC_S = Qrm(q(5:8));
         I = RW_C * TC_S * RC_S * position(I_pos(1), I_pos(2), I_pos(3));
 
-    elseif strcmp(origin, 'Clavicle') && strcmp(insertion, 'Scapula')
-        O =position(O_pos(1), O_pos(2), O_pos(3));
-        TC_S = T_z(-1);
+    elseif origin == 2 && insertion == 3
+        O = position(O_pos(1), O_pos(2), O_pos(3));
+        TC_S = T_z(-model.l);
         RC_S = Qrm(q(5:8));
         I =TC_S*RC_S * position(I_pos(1), I_pos(2), I_pos(3));
     end
