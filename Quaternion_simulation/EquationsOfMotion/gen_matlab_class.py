@@ -4,8 +4,7 @@ def MatlabFunction(function,fun_name,assignto,coordinates,speeds,inputs,paramete
     
     text_file = open(f"{fun_name}.m","w")
     with open(f"{fun_name}.m","w") as text_file:
-        # function .. = .. ()
-        header = f"function {assignto} = {fun_name}(q,u,inputs,model)" #,u,act,model,opt_var)
+        header = f"function {assignto} = {fun_name}(q,u,inputs,model)"
         
         print(header,file=text_file)
         
