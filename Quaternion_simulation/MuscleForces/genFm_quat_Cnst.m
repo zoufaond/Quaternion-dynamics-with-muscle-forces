@@ -1,16 +1,15 @@
 function jac = genFm_quat_Cnst(genEq,model)
-% function create external torques from the constrained muscle length 
-% based only on the q2,q3,q4 elements (q1 = sqrt(1-q2^2-q3^2-q4^2))
+% calculate muscle length Jacobian using the additional constraint
 
 % two spherical joints = 2*4 quaternion elements
 q = sym('q',[1 8],'real');
 % 6 muscles
-F_iso = sym('F_iso',[1 6],'real');
-l0m = sym('l0m', [1 6],'real');
-akt = sym('akt',[6 1],'real');
+fmax = sym('F_iso',[1 6],'real');
+lceopt = sym('l0m', [1 6],'real');
+act = sym('akt',[6 1],'real');
 t = sym('t','real');
 
-% now the muscles are not functions of q1 (q(1) and q(5) in this case)
+% substitute q0 for 'sqrt(1-q(1)^2-q(2)^2-q(3)^2)'
 
 q1Cst = [sqrt(1-q(2)^2-q(3)^2-q(4)^2),q(2),q(3),q(4)];
 q2Cst = [sqrt(1-q(6)^2-q(7)^2-q(8)^2),q(6),q(7),q(8)];
@@ -24,28 +23,22 @@ for i = 1:6
     ins = model.(current_muscle).insertion;
 
     muscle_lengths(i) = muscle_length(orig_body,ins_body,orig,ins,qCnst,model);
-    muscle_forces(i) = muscle_force(muscle_lengths(i),F_iso(i),akt(i),l0m(i));
+    muscle_forces(i) = muscle_force(act(i),muscle_lengths(i),fmax(i),lceopt(i));
 end
 
 % Jacobian of muscle lengths
-jac = -(jacobian(muscle_lengths,[q(2:4),q(6:8)])'); %the lenths are not functions of q(1) and q(5)
-% calculate the muscle (Thelen 2003 without velocity function a with rigid tendon - so no differential equation needed)
+jac = -(jacobian(muscle_lengths,[q(2:4),q(6:8)])');
 
 if genEq == 1
-% calculate [6x1] vector of 'quaternion-space' forces (based on the quaternion constraint)
-% explained in readme
+
+% use appropriate mappings to create external torques
 fe = [jac*muscle_forces'];
 F1 = invJtrans(q(1:4))*fe(1:3);
 F2 = invJtrans(q(5:8))*fe(4:6);
 FE = ([F1;F2]);
 
 % generate function
-matlabFunction(FE,'file','FM_quat_Cnst','vars',{t,q,F_iso,l0m,akt});
-end
-
-function force = muscle_force(length, F_iso, akt, l0m)
-    f_gauss = 0.25;
-    force = (((length / l0m)^3) * exp(8 * length / l0m - 12.9) + (exp(-(length / l0m - 1)^2 / f_gauss)) * akt) * F_iso;
+matlabFunction(FE,'file','MuscleForces/FM_quat_Cnst','vars',{t,q,fmax,lceopt,act});
 end
 
 function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)

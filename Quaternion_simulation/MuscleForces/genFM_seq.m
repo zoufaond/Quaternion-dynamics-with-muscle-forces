@@ -1,13 +1,11 @@
 function jac = genFM_seq(model)
-% this one just calculates the jacobian (here moment arms w.r.t. the coordinates)
-% we can use whatever sequence we want, here I use YZY just to use on
-% something unusual
+% calculate jacobian for YZY Euler sequence of angles for both joints
 
 phi = sym('phi',[1 6]);
 dq = sym('dq', [1 6]);
-F_iso = sym('F_iso',[1 6]);
-l0m = sym('l0m', [1 6]);
-akt = sym('akt',[1 6]);
+fmax = sym('F_iso',[1 6],'real');
+lceopt = sym('l0m', [1 6],'real');
+act = sym('akt',[6 1],'real');
 t = sym('t');
 
 for i = 1:6
@@ -18,15 +16,11 @@ for i = 1:6
     ins = model.(current_muscle).insertion;
 
     muscle_lengths(i) = muscle_length(orig_body,ins_body,orig,ins,phi,model);
-    muscle_forces(i) = muscle_force(muscle_lengths(i),F_iso(i),akt(i),l0m(i));
+    muscle_forces(i) = muscle_force(act(i),muscle_lengths(i),fmax(i),lceopt(i));
 end
 
+% Calculate Jacobian of muscle lengths (a.k.a. moment arms)
 jac = -(jacobian(muscle_lengths,phi)');
-
-function force = muscle_force(length, F_iso, akt, l0m)
-    f_gauss = 0.25;
-    force = (((length / l0m)^3) * exp(8 * length / l0m - 12.9) + (exp(-(length / l0m - 1)^2 / f_gauss)) * akt) * F_iso;
-end
 
 function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)
     if origin == 1 && insertion == 2

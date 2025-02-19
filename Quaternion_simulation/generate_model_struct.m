@@ -1,12 +1,15 @@
 clear all
 % create struct with the model parameters
-model.m = 1;
+mass = 5;
+radius = 0.1;
+length = 1;
+model.m = mass;
 model.g = 9.81;
-model.Ixx = 8.1667;
-model.Iyy = 8.1667;
-model.Izz = 1.66667;
-model.l = 1;
-model.radius = 0.1;
+model.Ixx = 1/12 * mass * (3 * radius ^ 3 + length ^ 2) ;
+model.Iyy = 1/12 * mass * (3 * radius ^ 3 + length ^ 2);
+model.Izz = 1/2 * mass * radius^2;
+model.l = length;
+model.radius = radius;
 model.c = 1;
 
 % Child and parent coordinates from center of mass
@@ -50,4 +53,4 @@ model.muscle6.origin_body = 1;
 model.muscle6.insertion = [0,0.1,-0.4];
 model.muscle6.insertion_body = 3;
 
-save('parameters.mat','model')
+save('model_struct.mat','model')

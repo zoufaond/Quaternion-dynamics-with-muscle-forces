@@ -3,9 +3,9 @@ function jac = genFm_quat(genEq,model)
 % two spherical joints = 2*4 quaternion elements
 q = sym('q',[1 8],'real');
 % 6 muscles
-F_iso = sym('F_iso',[1 6],'real');
-l0m = sym('l0m', [1 6],'real');
-akt = sym('akt',[6 1],'real');
+fmax = sym('F_iso',[1 6],'real');
+lceopt = sym('l0m', [1 6],'real');
+act = sym('akt',[6 1],'real');
 t = sym('t','real');
 
 for i=1:6
@@ -16,27 +16,22 @@ for i=1:6
     ins = model.(current_muscle).insertion;
 
     muscle_lengths(i) = muscle_length(orig_body,ins_body,orig,ins,q,model);
-    muscle_forces(i) = muscle_force(muscle_lengths(i),F_iso(i),akt(i),l0m(i));
+    muscle_forces(i) = muscle_force(act(i),muscle_lengths(i),fmax(i),lceopt(i));
 end
 
+% Jacobian of muscle lengths
 jac = -(jacobian(muscle_lengths,q)');
 
 if genEq == 1
-
 % calculate [8x1] vector of 'quaternion-space' forces 
 fe = jac*muscle_forces';
-% map fe to external torques via G matrix (Quaternion and Dynamics, Basile Graf, page 14, eq. 28 ... you just need to rewrite the equation to calculate external torque)
-% each joint has to be treated seperately
+
+% use appropriate mappins to create external torques
 F1 = 1/2*G(q(1:4))*fe(1:4);
 F2 = 1/2*G(q(5:8))*fe(5:8);
 FE = ([F1;F2]);
-% generate optimized function
-matlabFunction(FE,'file','FM_quat','vars',{t,q,F_iso,l0m,akt});
-end
 
-function force = muscle_force(length, F_iso, akt, l0m)
-    f_gauss = 0.25;
-    force = (((length / l0m)^3) * exp(8 * length / l0m - 12.9) + (exp(-(length / l0m - 1)^2 / f_gauss)) * akt) * F_iso;
+matlabFunction(FE,'file','MuscleForces/FM_quat','vars',{t,q,fmax,lceopt,act});
 end
 
 function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)

@@ -1,14 +1,14 @@
 clear all
 clc
 addpath MuscleForces\
-load("parameters.mat");
+load("model_struct.mat");
 
-% 1 .. generate functions of external torques
-genEq = 0;
-
+% create symbolic coordinates
 q = sym('q',[1 8],'real');
 phi = sym('phi',[1 6],'real');
 
+% 1 .. generate functions of external torques
+genEq = 0;
 JQsym = genFm_quat(genEq,model); % unconstrained muscle lengths jacobian
 JQCnstsym = genFm_quat_Cnst(genEq,model); % constrained muscle lengths jacobian
 JEulsym = genFM_seq(model); % muscle lengths jacobian for YZY sequence of rotations
@@ -20,8 +20,7 @@ JQCnst = matlabFunction(JQCnstsym,'Vars',{q});
 JEul = matlabFunction(JEulsym,'Vars',{phi});
 
 %%
-% run forward dynamics in simulink
-% simulink calls initFunction
+% run forward dynamics in simulink (initFunction )
 out = sim("double_3D_pend_Quat.slx");
 %%
 % out .. output from simulink
@@ -29,7 +28,7 @@ out = sim("double_3D_pend_Quat.slx");
 % out.q_1/q_2 .. resulting quaternions
 % out.yzy_1/yzy_2 .. resulting yzy angles
 
-time = out.tout;
+time = out.tout';
 quat_1 = reshape(out.q_1.Data,[4,length(time)])';
 eul_1 = reshape(out.yzy_1.Data,[3,length(time)])';
 quat_2 = reshape(out.q_2.Data,[4,length(time)])';
@@ -63,7 +62,7 @@ for i = 1:length(time)
     SpatJfromJEul = eul2spatial(JEulval,phiVal,2);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %                             SECTION GRAF                            %
+    %                             SECTION 2.2                             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % get the i-th muscle length Jacobian in quaternions (w.r.t. all quaternion elements)
     JQval = JQ(quatVal);
@@ -81,13 +80,13 @@ for i = 1:length(time)
     JQfromJEul_mus(:,i) = JQfromJEul(:,imus);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %                         END SECTION GRAF                            %
+    %                         END SECTION 2.2                             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %                       SECTION CONSTRAINT                            %
+    %                       SECTION 2.3                                   %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % get the i-th muscle length Jacobian in quaternion coordinates (approach based on section Constraint)
     quatVal_pos = quatVal;
@@ -108,7 +107,7 @@ for i = 1:length(time)
     JQfromJEulCnst_mus(:,i) = JQfromJEulCnst(:,imus);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %                   END SECTION CONSTRAINT                            %
+    %                   END SECTION 2.3                                   %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
