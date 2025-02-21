@@ -7,8 +7,8 @@ load("model_struct.mat");
 q = sym('q',[1 8],'real');
 phi = sym('phi',[1 6],'real');
 
-% 1 .. generate functions of external torques
-genEq = 0;
+
+genEq = 0; % 1 .. generate functions of external torques
 JQsym = genFm_quat(genEq,model); % unconstrained muscle lengths jacobian
 JQCnstsym = genFm_quat_Cnst(genEq,model); % constrained muscle lengths jacobian
 JEulsym = genFM_seq(model); % muscle lengths jacobian for YZY sequence of rotations
@@ -139,10 +139,6 @@ fig.Position(3:4)=[800,350];
 Lgnd = legend({'Euler ML Jacobian',['Quaternion ML Jacobian' newline 'mapped to Euler coordinates']});
 Lgnd.Position(1) = 0.0;
 Lgnd.Position(2) = 0.365;
-% text1 = annotation('textbox', [0.3, 0.805, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13);
-% text1.Rotation = 0;
-% text2 = annotation('textbox', [0.3, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13);
-% text2.Rotation = 0;
 text1 = annotation('textbox', [0.3, 0.44, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
 text1.Rotation = 0;
 text2 = annotation('textbox', [0.3, 0.355, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
@@ -162,20 +158,8 @@ for j = 1:8
     subplot(2,4,j)
     plot(time(1:end), JQfromJEul_mus(j,(1:end)),'b',time(1:end),JQval_mus(j,(1:end)),'r--','LineWidth',1.7)
     ylabel({'$$\textbf{R}_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
-
-    % if j == 5
-    %     % title({newline,'$$\indent \indent \frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-    %     ylabel({'$$\textbf{R}^*_{Q_'+string(qcoord)+body(ibody)+'}$$','$$[-]$$'},'rotation',0,'Interpreter','latex','FontSize',15)
-    % 
-    % else
-    %     title({newline, '$$\frac{\partial l_m(\vec{Q})}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-    % 
-    % end
     xlabel('time [s]')
     axis([-inf,inf,-inf,inf])
-
-    % ylabel('$[-]$','Interpreter','latex','FontSize',12)
-
 
     if j == 4 || j == 5 || j == 6
         title(newline)
@@ -192,10 +176,6 @@ fig.Position(3:4)=[800,350];
 Lgnd = legend({['Euler ML Jacobian mapped' newline 'to quaternion coordinates'],'Quaternion ML Jacobian'});
 Lgnd.Position(1) = 0.01;
 Lgnd.Position(2) = 0.375;
-% text1 = annotation('textbox', [0.47, 0.8, 0.1, 0.1], 'string','Upper joint' ,'FontSize',10);
-% text1.Rotation = 0;
-% text2 = annotation('textbox', [0.47, 0.33, 0.1, 0.1], 'string','Lower joint' ,'FontSize',10);
-% text2.Rotation = 0;
 text1 = annotation('textbox', [0.27, 0.45, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
 text1.Rotation = 0;
 text2 = annotation('textbox', [0.27, 0.375, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
@@ -218,11 +198,7 @@ for j = 1:6
     if j == 4 || j == 5 || j == 6
         title(newline)
     end
-    %     % title({newline,'\indent \indent $$\frac{\partial l_m(\vec{Q}^*)}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-    %     ylabel({newline,'\indent \indent $$\frac{\partial l_m(\vec{Q}^*)}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-    % else
-        % title({newline,'$$\frac{\partial l_m(\vec{Q}^*)}{\partial Q_'+string(qcoord)+body(ibody)+'}$$'},'Interpreter','latex','FontSize',12)
-    % end
+
     if j == 1
         xlabel('time [s]','Position',[3,-1.6])
     else
@@ -231,10 +207,6 @@ for j = 1:6
     
     axis([-inf,inf,-inf,inf])
     
-
-    % ylabel('$$\textbf{R}^*_{Q_'+string(qcoord)+body(ibody)+' [-]}$$','Interpreter','latex','FontSize',12)
-    % ylabel('$$[-]$$','Interpreter','latex','FontSize',12)
-
     qcoord = qcoord +1;
     if j == 3
         qcoord = 1;
@@ -254,9 +226,6 @@ text2.Rotation = 0;
 annotation('line',[0.23,0.9],[0.475,0.475],'LineWidth',2)
 
 % exportgraphics(fig,'JQCnst_comparison.png','Resolution',600);
-
-
-% figure 
 
 function res = spatial2quat(jac,quat,Njoints)
     k = 1;
