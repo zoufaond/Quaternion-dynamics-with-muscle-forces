@@ -1,6 +1,6 @@
 clear all
 % create struct with the model parameters
-mass = 5;
+mass = 1;
 radius = 0.1;
 length = 1;
 model.m = mass;
