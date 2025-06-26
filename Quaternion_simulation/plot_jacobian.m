@@ -8,10 +8,10 @@ q = sym('q',[1 8],'real');
 phi = sym('phi',[1 6],'real');
 
 
-genEq = 0; % 1 .. generate functions of external torques
+genEq = 0; % 1 .. generate functions of muscle forces
 JQsym = genFm_quat(genEq,model); % unconstrained muscle lengths jacobian
 JQCnstsym = genFm_quat_Cnst(genEq,model); % constrained muscle lengths jacobian
-JEulsym = genFM_seq(model); % muscle lengths jacobian for YZY sequence of rotations
+JEulsym = genFM_seq(genEq,model); % muscle lengths jacobian for YZY sequence of rotations
 disp('Muscle Jacobians derived')
 
 % anonymous functions
@@ -22,6 +22,7 @@ JEul = matlabFunction(JEulsym,'Vars',{phi});
 %%
 % run forward dynamics in simulink (initFunction )
 out = sim("double_3D_pend_Quat.slx");
+plot_results(out)
 %%
 % out .. output from simulink
 % out.time .. timespan of simulation
@@ -116,7 +117,7 @@ end
 
 
 % Moment arms
-jnts = {'R_y^{U}','R_z^{U}','R_{yy}^{U}','R_y^{L}','R_z^{L}','R_{yy}^{L}'};
+jnts = {'R_y^{U}','R_z^{U}','R_{yy}^{U}','R_y^{L}','R_z^{L}','R_{x}^{L}'};
 
 figure
 for j = 1:6
@@ -136,16 +137,18 @@ end
 % sgtitle('Jacobian in Euler coordinates (moment arms)')
 fig = gcf;
 fig.Position(3:4)=[800,350];
-Lgnd = legend({'Euler ML Jacobian',['Quaternion ML Jacobian' newline 'mapped to Euler coordinates']});
+Lgnd = legend({'Euler angles ML Jacobian',['Quaternion ML Jacobian mapped ' newline 'to Euler angles ML Jacobian']});
 Lgnd.Position(1) = 0.0;
 Lgnd.Position(2) = 0.365;
+Lgnd.FontSize = 8;
+Lgnd.IconColumnWidth = 17;
 text1 = annotation('textbox', [0.3, 0.44, 0.1, 0.1], 'string','Upper joint' ,'FontSize',13,'EdgeColor','none');
 text1.Rotation = 0;
 text2 = annotation('textbox', [0.3, 0.355, 0.1, 0.1], 'string','Lower joint' ,'FontSize',13,'EdgeColor','none');
 text2.Rotation = 0;
 annotation('line',[0.25,0.9],[0.45,0.45],'LineWidth',2)
 % 
-% exportgraphics(fig,'Moment arms.png','Resolution',600);
+exportgraphics(fig,'moment_arms_new.jpg','Resolution',600);
 
 
 
@@ -259,27 +262,38 @@ end
 
 function res = eul2spatial(jac,phi,Njoints)
     k = 1;
+    joints_seq = {'YZY','YZX'};
     for i=1:Njoints
-        res(k:k+2,:) = JG(phi(k:k+2))\jac(k:k+2,:);
+        res(k:k+2,:) = JG(phi(k:k+2),joints_seq{i})\jac(k:k+2,:);
         k = k+3;
     end
 end
 
 function res = spatial2eul(jac,phi,Njoints)
     k = 1;
+    joints_seq = {'YZY','YZX'};
     for i=1:Njoints
-        res(k:k+2,:) = JG(phi(k:k+2))*jac(k:k+2,:);
+        res(k:k+2,:) = JG(phi(k:k+2),joints_seq{i})*jac(k:k+2,:);
         k = k+3;
     end
 end
 
-function res = JG(phi)
+function res = JG(phi,seq)
     % this is geometric jacobian of YZY sequence
     s2 = sin(phi(2));
     s3 = sin(phi(3));
     c2 = cos(phi(2));
     c3 = cos(phi(3));
-    res = [s2*c3, c2, s2*s3; -s3, 0 ,c3; 0, 1, 0];
+    if strcmp(seq,'YZY')
+        res = [s2*c3, c2, s2*s3;
+              -s3, 0 ,c3; 
+               0, 1, 0];
+    elseif strcmp(seq,'YZX')
+        res = [s2,c2*c3,-s3*c2; 
+               0, s3,c3; 
+               1, 0, 0];
+    end
+
 end
 
 function res = T(quat)
@@ -296,7 +310,6 @@ function res = Etrans(quat)
 end
 
 function res = invEtrans(quat)
-    % inverse of Jtrans - resulting matrix is actually this simple
     q1 = quat(1);
     q2 = quat(2);
     q3 = quat(3);
@@ -336,4 +349,87 @@ function res = positive_quat(quat)
     end
 
     res = quat;
+end
+
+function plot_results(out)
+% disp('Number simulation steps:')
+% disp(length(out.tout))
+
+line_colors = [0, 0, 1, 1; 1, 0, 0, 1;0, 1, 0, 1; 0.4660, 0.6740, 0.1880, 1];
+line_colors_simulink = [0, 0, 1, 1; 1, 0, 0, 1;0, 1, 0, 1; 0.4660, 0.6740, 0.1880, 1];
+time = out.tout;
+time_interp = linspace(0,time(end),30);
+quat0_1 = out.q1_eq.Data(1,:);
+quat1_1 = out.q1_eq.Data(2,:);
+quat2_1 = out.q1_eq.Data(3,:);
+quat3_1 = out.q1_eq.Data(4,:);
+quat0_1_simulink = out.q_1.Data(1,:);
+quat1_1_simulink = out.q_1.Data(2,:);
+quat2_1_simulink = out.q_1.Data(3,:);
+quat3_1_simulink = out.q_1.Data(4,:);
+quat0_1_simulink_interp1 = interp1(time,quat0_1_simulink,time_interp);
+quat1_1_simulink_interp1 = interp1(time,quat1_1_simulink,time_interp);
+quat2_1_simulink_interp1 = interp1(time,quat2_1_simulink,time_interp);
+quat3_1_simulink_interp1 = interp1(time,quat3_1_simulink,time_interp);
+
+quat0_2 = out.q2_eq.Data(1,:);
+quat1_2 = out.q2_eq.Data(2,:);
+quat2_2 = out.q2_eq.Data(3,:);
+quat3_2 = out.q2_eq.Data(4,:);
+quat0_2_simulink = out.q_2.Data(1,:);
+quat1_2_simulink = out.q_2.Data(2,:);
+quat2_2_simulink = out.q_2.Data(3,:);
+quat3_2_simulink = out.q_2.Data(4,:);
+quat0_2_simulink_interp1 = interp1(time,quat0_2_simulink,time_interp);
+quat1_2_simulink_interp1 = interp1(time,quat1_2_simulink,time_interp);
+quat2_2_simulink_interp1 = interp1(time,quat2_2_simulink,time_interp);
+quat3_2_simulink_interp1 = interp1(time,quat3_2_simulink,time_interp);
+
+figure
+end_point = 0;
+subplot(2,1,1)
+plot(time(1:end-end_point),quat0_1(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(1,:)); hold on
+% plot(time_interp(1:end-end_point),quat0_1_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(1,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat1_1(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(2,:)); hold on
+% plot(time_interp(1:end-end_point),quat1_1_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(2,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat2_1(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(3,:)); hold on
+% plot(time_interp(1:end-end_point),quat2_1_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(3,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat3_1(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(4,:)); hold on
+% plot(time_interp(1:end-end_point),quat3_1_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(4,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+
+hold off
+xlim([0 4])
+ylim([-1 1])
+% leg = legend({'Q_0','Q_0^{Sim}','Q_1','Q_1^{Sim}','Q_2','Q_2^{Sim}','Q_3','Q_3^{Sim}'},'NumColumns',4,'FontSize',8,'Location','northeast');
+leg = legend({'Q_0^{Upper}','Q_1^{Upper}','Q_2^{Upper}','Q_3^{Upper}'},'NumColumns',2,'FontSize',8,'Location','northeast');
+leg.IconColumnWidth = 10;
+leg.Position(1) = [0.6];
+leg.Position(2) = [0.58];
+title('Quaternion-based model - Upper joint')
+xlabel('Time [s]')
+ylabel('[-]')
+
+subplot(2,1,2)
+plot(time(1:end-end_point),quat0_2(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(1,:)); hold on
+% plot(time_interp(1:end-end_point),quat0_2_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(1,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat1_2(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(2,:)); hold on
+% plot(time_interp(1:end-end_point),quat1_2_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(2,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat2_2(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(3,:)); hold on
+% plot(time_interp(1:end-end_point),quat2_2_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(3,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+plot(time(1:end-end_point),quat3_2(1:end-end_point),'LineWidth',1.5,'Color',line_colors_simulink(4,:)); hold on
+% plot(time_interp(1:end-end_point),quat3_2_simulink_interp1(1:end-end_point),'Color',line_colors_simulink(4,:),'Marker','o','LineStyle', 'none','MarkerSize',8); hold on
+
+hold off
+xlim([0 4])
+ylim([-1 1])
+
+leg = legend({'Q_0^{Lower}','Q_1^{Lower}','Q_2^{Lower}','Q_3^{Lower}'},'NumColumns',2,'FontSize',8,'Location','northeast');
+% leg = legend({'Q_0','Q_0^{Sim}','Q_1','Q_1^{Sim}','Q_2','Q_2^{Sim}','Q_3','Q_3^{Sim}'},'NumColumns',4,'FontSize',8,'Location','northeast');
+
+leg.IconColumnWidth = 10;
+leg.Position(1) = [0.6];
+leg.Position(2) = [0.1];
+title('Quaternion-based model - Lower joint')
+xlabel('Time [s]')
+ylabel('[-]')
 end

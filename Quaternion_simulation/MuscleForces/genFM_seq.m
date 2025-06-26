@@ -1,4 +1,4 @@
-function jac = genFM_seq(model)
+function jac = genFM_seq(genEq,model)
 % calculate jacobian for YZY Euler sequence of angles for both joints
 
 phi = sym('phi',[1 6]);
@@ -22,6 +22,11 @@ end
 % Calculate Jacobian of muscle lengths (a.k.a. moment arms)
 jac = -(jacobian(muscle_lengths,phi)');
 
+if genEq == 1
+FE = jac*muscle_forces';
+matlabFunction(FE,'file','MuscleForces/FM_eul','vars',{t,phi,fmax,lceopt,act});
+end
+
 function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)
     if origin == 1 && insertion == 2
         O = position(O_pos(1), O_pos(2), O_pos(3));
@@ -31,13 +36,13 @@ function length = muscle_length(origin, insertion, O_pos, I_pos, q, model)
         O = position(O_pos(1), O_pos(2), O_pos(3));
         RW_C = R_y(q(1)) * R_z(q(2)) * R_y(q(3));
         TC_S = T_z(-model.l);
-        RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
+        RC_S = R_y(q(4)) * R_z(q(5)) * R_x(q(6));
         I = RW_C * TC_S * RC_S * position(I_pos(1), I_pos(2), I_pos(3));
 
     elseif origin == 2 && insertion == 3
         O =position(O_pos(1), O_pos(2), O_pos(3));
         TC_S = T_z(-model.l);
-        RC_S = R_y(q(4)) * R_z(q(5)) * R_y(q(6));
+        RC_S = R_y(q(4)) * R_z(q(5)) * R_x(q(6));
         I = TC_S*RC_S * position(I_pos(1), I_pos(2), I_pos(3));
     end
 

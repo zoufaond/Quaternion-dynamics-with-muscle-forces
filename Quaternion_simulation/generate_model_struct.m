@@ -1,6 +1,6 @@
 clear all
 % create struct with the model parameters
-mass = 1;
+mass = 5;
 radius = 0.1;
 length = 1;
 model.m = mass;
@@ -10,7 +10,7 @@ model.Iyy = 1/12 * mass * (3 * radius ^ 3 + length ^ 2);
 model.Izz = 1/2 * mass * radius^2;
 model.l = length;
 model.radius = radius;
-model.c = 1;
+model.c = 1e-8;
 
 % Child and parent coordinates from center of mass
 model.rigid1C = [0,0,model.l/2];
