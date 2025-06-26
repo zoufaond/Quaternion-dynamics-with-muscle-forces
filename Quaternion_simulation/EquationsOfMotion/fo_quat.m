@@ -1,4 +1,4 @@
-function fo_python = fo_python(q,u,inputs,model)
+function fo_quat = fo_quat(q,u,inputs,model)
 l = model.l;
 m = model.m;
 g = model.g;
@@ -100,4 +100,4 @@ x76 = m.*x23;
 x77 = g.*x47.*x76;
 x78 = x70.*x76;
 x79 = um3.*x73/2;
-fo_python = [-qm1.*x0 - um2.*x1 - um3.*x2; qm0.*x0 - um2.*x2 + um3.*x1; qm3.*x0 + um2.*x3 - um3.*x4; -qm2.*x0 + um2.*x4 + um3.*x3; x8; x9; x12; x13; Iyy.*um2.*um3 - Izz.*um2.*um3 - c.*um1 + g.*l.*m.*x22.*x46/2 - 3*g.*x16.*x17/2 - l.*m.*um2.*um3.*x43 + l.*m.*x22.*x67/2 + 5*m.*um2.*um3.*x14/4 - x17.*x40.*x67 - x17.*x42.*x70 - x17.*x49.*x54 - x22.*x61 - x34.*x69 - x35.*x48 - x35.*x71 - x36.*x38 - x55.*x57; -Ixx.*x72 + Izz.*um1.*um3 - c.*um2 + g.*l.*m.*x42.*x46/2 + 3*g.*l.*m.*x44/2 + l.*m.*um1.*um3.*x43 + l.*m.*x22.*x70 + l.*m.*x34.*x67 + l.*m.*x42.*x67/2 + l.*m.*x54.*x55 - x38.*x75 - x40.*x69 - x42.*x61 - x48.*x74 - x49.*x57 - x71.*x74 - 5*x72.*x73/4; Ixx.*um1.*um2 - Iyy.*um1.*um2 - c.*um3 + g.*l.*m.*x27.*x46/2 - l.*m.*um1.*um3.*x36 - l.*m.*um2.*um3.*x75 + l.*m.*x27.*x67/2 - x20.*x69 - x20.*x77 - x20.*x78 - x27.*x61 - x57.*x58; -c.*um4 + m.*um1.*um3.*x14.*x22/2 + m.*um2.*um3.*x14.*x42/2 - x23.*x27.*x38 - x69 - x77 - x78; -c.*um5 + g.*l.*m.*x46/2 + l.*m.*x20.*x37/2 + l.*m.*x67/2 - x51.*x79 - x52.*x79 - x61; -c.*um6 - x57];
+fo_quat = [-qm1.*x0 - um2.*x1 - um3.*x2; qm0.*x0 - um2.*x2 + um3.*x1; qm3.*x0 + um2.*x3 - um3.*x4; -qm2.*x0 + um2.*x4 + um3.*x3; x8; x9; x12; x13; Iyy.*um2.*um3 - Izz.*um2.*um3 - c.*um1 + g.*l.*m.*x22.*x46/2 - 3*g.*x16.*x17/2 - l.*m.*um2.*um3.*x43 + l.*m.*x22.*x67/2 + 5*m.*um2.*um3.*x14/4 - x17.*x40.*x67 - x17.*x42.*x70 - x17.*x49.*x54 - x22.*x61 - x34.*x69 - x35.*x48 - x35.*x71 - x36.*x38 - x55.*x57; -Ixx.*x72 + Izz.*um1.*um3 - c.*um2 + g.*l.*m.*x42.*x46/2 + 3*g.*l.*m.*x44/2 + l.*m.*um1.*um3.*x43 + l.*m.*x22.*x70 + l.*m.*x34.*x67 + l.*m.*x42.*x67/2 + l.*m.*x54.*x55 - x38.*x75 - x40.*x69 - x42.*x61 - x48.*x74 - x49.*x57 - x71.*x74 - 5*x72.*x73/4; Ixx.*um1.*um2 - Iyy.*um1.*um2 - c.*um3 + g.*l.*m.*x27.*x46/2 - l.*m.*um1.*um3.*x36 - l.*m.*um2.*um3.*x75 + l.*m.*x27.*x67/2 - x20.*x69 - x20.*x77 - x20.*x78 - x27.*x61 - x57.*x58; -c.*um4 + m.*um1.*um3.*x14.*x22/2 + m.*um2.*um3.*x14.*x42/2 - x23.*x27.*x38 - x69 - x77 - x78; -c.*um5 + g.*l.*m.*x46/2 + l.*m.*x20.*x37/2 + l.*m.*x67/2 - x51.*x79 - x52.*x79 - x61; -c.*um6 - x57];
