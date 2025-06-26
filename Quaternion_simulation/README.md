@@ -2,7 +2,7 @@
 
 ## 📂 [EquationsOfMotion](EquationsOfMotion)
 - Contains the derivation of equations of motion using Sympy Mechanics.
-- [double_pend_quat.ipynb](EquationsOfMotion/double_pend_quat.ipynb) is a Jupyter notebook that derives Matlab functions that store space-joint mass matrix and external forces ([mm_python.m](EquationsOfMotion/mm_python.m) and [fo_python.m](EquationsOfMotion/fo_python.m)).
+- [double_pend_quat.ipynb](EquationsOfMotion/double_pend_quat.ipynb) is a Jupyter notebook that derives Matlab functions that store space-joint mass matrix and external forces ([mm_quat.m](EquationsOfMotion/mm_quat.m) and [fo_quat.m](EquationsOfMotion/fo_quat.m)).
 
 ## 📂 [MuscleForces](MuscleForces)
 - Contains Matlab functions that derives the muscle length Jacobians and external torques from muscle forces symbolically.
